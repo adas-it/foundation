@@ -17,6 +17,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adasit.Foundation.Domain", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adasit.Foundation.DomainTests", "tests\Adasit.Foundation.DomainTests\Adasit.Foundation.DomainTests.csproj", "{3FB87BE5-0B9B-42FA-9032-41C93FA028DC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{E1A3A055-D430-49F8-9D47-0335CD4632DA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{8DC74D95-5265-4C1F-9BE6-3007AC9D44BD}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +46,7 @@ Global
 		{826C58DA-9284-4EE2-A1F8-0A47ED2F7140} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{58F9F046-DE1A-D107-B9AC-7FA50F908E9C} = {826C58DA-9284-4EE2-A1F8-0A47ED2F7140}
 		{3FB87BE5-0B9B-42FA-9032-41C93FA028DC} = {DE99FDB4-C8FE-4E20-8FC4-59D2D0D4FD4E}
+		{8DC74D95-5265-4C1F-9BE6-3007AC9D44BD} = {E1A3A055-D430-49F8-9D47-0335CD4632DA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1CF5C667-652D-4AA6-A807-69D2A8039776}
