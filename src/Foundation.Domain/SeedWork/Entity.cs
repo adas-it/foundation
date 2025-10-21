@@ -180,13 +180,11 @@ public abstract class Entity<TEntityId> where TEntityId : IEquatable<TEntityId>,
     /// </remarks>
     protected async Task<(DomainResult, REntity?)> ValidateAsync<REntity>(
         IDefaultValidator<REntity, TEntityId> validator,
+        REntity entity,
         CancellationToken cancellationToken)
         where REntity : Entity<TEntityId>
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        if (this is not REntity entity)
-            throw new InvalidOperationException($"Entity is not of type {typeof(REntity).Name}");
 
         var notifications = await validator.ValidateCreationAsync(entity, cancellationToken);
 
