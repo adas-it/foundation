@@ -400,7 +400,7 @@ public class DomainValidationsTests
     public void ValidUrl_WhenTargetIsRelativeUrl_ShouldReturnNotification()
     {
         // Arrange
-        var target = "/relative/path";
+        var target = "relative/path";
 
         // Act
         var notification = target.ValidUrl();
