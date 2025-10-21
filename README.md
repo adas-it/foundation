@@ -1,0 +1,1 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adas-it_foundation&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=adas-it_foundation)
