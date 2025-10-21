@@ -24,25 +24,11 @@ jobs:
       with:
         dotnet-version: 9.0.x
     
-    - name: Install SonarCloud scanner
-      run: dotnet tool install --global dotnet-sonarscanner
-    
     - name: Install coverage tools
       run: dotnet tool install --global dotnet-coverage
     
     - name: Restore dependencies
       run: dotnet restore
-    
-    - name: Begin SonarCloud analysis
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        dotnet-sonarscanner begin \
-          /k:"adas-it_foundation" \
-          /o:"adas-it" \
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
     
     - name: Build
       run: dotnet build --no-restore
@@ -50,7 +36,3 @@ jobs:
     - name: Test with coverage
       run: dotnet-coverage collect 'dotnet test --no-build --verbosity normal' -f xml -o 'coverage.xml'
     
-    - name: End SonarCloud analysis
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
