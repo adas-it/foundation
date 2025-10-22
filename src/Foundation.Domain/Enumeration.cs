@@ -29,7 +29,7 @@ public abstract record Enumeration<TKey>
     /// Returns the display name of the enumeration value.
     /// </summary>
     /// <returns>The name of the enumeration value.</returns>
-    public override string ToString() => Name;
+    public sealed override string ToString() => Name;
 
     /// <summary>
     /// Retrieves all defined values of a specific enumeration type.
