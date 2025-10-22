@@ -34,11 +34,8 @@ public class DefaultValidator<TEntity, TEntityId> : IDefaultValidator<TEntity, T
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity));
-
-        if (notifications is null)
-            throw new ArgumentNullException(nameof(notifications));
+        ArgumentNullException.ThrowIfNull(entity);
+        ArgumentNullException.ThrowIfNull(notifications);
 
         return Task.CompletedTask;
     }
