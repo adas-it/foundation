@@ -6,6 +6,8 @@ name: .NET
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "main" ]
 
@@ -45,12 +47,26 @@ jobs:
           /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
     
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --configuration Release
     
     - name: Test with coverage
-      run: dotnet-coverage collect 'dotnet test --no-build --verbosity normal' -f xml -o 'coverage.xml'
+      run: dotnet-coverage collect 'dotnet test --no-build --configuration Release --verbosity normal' -f xml -o 'coverage.xml'
     
     - name: End SonarCloud analysis
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+    
+    - name: Pack NuGet package
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: dotnet pack src/Foundation.Domain/Adasit.Foundation.Domain.csproj --configuration Release --no-build --output ./artifacts
+    
+    - name: Display package version
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        echo "Package version:"
+        ls -la ./artifacts/*.nupkg
+    
+    - name: Publish to GitHub Packages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: dotnet nuget push ./artifacts/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.ARTIFACTORY_TOKEN }} --skip-duplicate
