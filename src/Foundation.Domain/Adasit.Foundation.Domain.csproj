@@ -9,7 +9,6 @@
 		<Company>Architecture and Development of Applications and Systems</Company>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>Library with common extensions and utilities.</Description>
-		<PackageOutputPath>..\..\artifacts</PackageOutputPath>
 		
 		<!-- MinVer: Automatic versioning using Git tags -->
 		<MinVerTagPrefix>v</MinVerTagPrefix>
@@ -18,9 +17,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MinVer" Version="6.0.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
+	  <PackageReference Include="MinVer" Version="6.0.0">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
 	</ItemGroup>
 </Project>
