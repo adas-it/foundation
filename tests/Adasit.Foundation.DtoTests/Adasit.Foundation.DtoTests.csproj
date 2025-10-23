@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\Foundation.Dto\AdasIt.Foundation.Dto\AdasIt.Foundation.Dto.csproj" />
+	  <ProjectReference Include="..\..\src\AdasIt.Foundation.Dto\AdasIt.Foundation.Dto.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

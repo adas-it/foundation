@@ -9,118 +9,80 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-domain:
+  build:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'src/Foundation.Domain/') || contains(github.event.head_commit.modified, 'tests/Adasit.Foundation.DomainTests/')
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
-    
-    - name: Install SonarCloud scanner
-      run: dotnet tool install --global dotnet-sonarscanner
-    
-    - name: Install coverage tools
-      run: dotnet tool install --global dotnet-coverage
-    
-    - name: Restore dependencies
-      run: dotnet restore src/Foundation.Domain/Adasit.Foundation.Domain.csproj
-    
-    - name: Begin SonarCloud analysis
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        dotnet-sonarscanner begin \
-          /k:"adas-it_foundation" \
-          /o:"adas-it" \
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.cs.vscoveragexml.reportsPaths=coverage-domain.xml
-    
-    - name: Build
-      run: dotnet build src/Foundation.Domain/Adasit.Foundation.Domain.csproj --no-restore --configuration Release
-    
-    - name: Test with coverage
-      run: dotnet-coverage collect 'dotnet test tests/Adasit.Foundation.DomainTests/Adasit.Foundation.DomainTests.csproj --no-build --configuration Release --verbosity normal' -f xml -o 'coverage-domain.xml'
-    
-    - name: End SonarCloud analysis
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-    
-    - name: Pack NuGet package
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      run: dotnet pack src/Foundation.Domain/Adasit.Foundation.Domain.csproj --configuration Release --no-build --output ./artifacts
-    
-    - name: Display package version
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      run: |
-        echo "Package version:"
-        ls -la ./artifacts/*.nupkg
-    
-    - name: Publish to GitHub Packages
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      run: dotnet nuget push ./artifacts/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.ARTIFACTORY_TOKEN }} --skip-duplicate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: domain
+            projectName: src/Foundation.Domain/Adasit.Foundation.Domain.csproj
+            projectTestName: tests/Adasit.Foundation.DomainTests/Adasit.Foundation.DomainTests.csproj
+            sonarProjectKey: adas-it_foundation
+            coverageFile: coverage-domain.xml
+          - name: dto
+            projectName: src/AdasIt.Foundation.Dto/AdasIt.Foundation.Dto.csproj
+            projectTestName: tests/Adasit.Foundation.DtoTests/Adasit.Foundation.DtoTests.csproj
+            sonarProjectKey: adas-it_foundation-dto
+            coverageFile: coverage-dto.xml
+          - name: infra-entity
+            projectName: src/Foundation.Infrastructure/AdasIt.Foundation.Infrastructure.EntityFramework/AdasIt.Foundation.Infrastructure.EntityFramework.csproj
+            projectTestName: tests/Foundation.Infrastructure/AdasIt.Foundation.Infrastructure.EntityFrameworkTests/AdasIt.Foundation.Infrastructure.EntityFrameworkTests.csproj
+            sonarProjectKey: adas-it_foundation-infra-entity
+            coverageFile: coverage-infra-entity.xml
 
-  build-dto:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'src/Foundation.Dto/') || contains(github.event.head_commit.modified, 'tests/Adasit.Foundation.DtoTests/')
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install tools
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+          dotnet tool install --global dotnet-coverage
+
+      - name: Restore dependencies
+        run: |
+          dotnet restore ${{ matrix.projectName }}
+          dotnet restore ${{ matrix.projectTestName }}
+
+      - name: Begin SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet-sonarscanner begin \
+            /k:"${{ matrix.sonarProjectKey }}" \
+            /o:"adas-it" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.vscoveragexml.reportsPaths=${{ matrix.coverageFile }}
+
+      - name: Build
+        run: |
+          dotnet build ${{ matrix.projectName }} --no-restore --configuration Release
+          dotnet build ${{ matrix.projectTestName }} --no-restore --configuration Release
+
+      - name: Test with coverage
+        run: dotnet-coverage collect 'dotnet test ${{ matrix.projectTestName }} --no-build --configuration Release --verbosity normal' -f xml -o '${{ matrix.coverageFile }}'
     
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
+      - name: End SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
     
-    - name: Install SonarCloud scanner
-      run: dotnet tool install --global dotnet-sonarscanner
+      - name: Pack NuGet package
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        run: dotnet pack ${{ matrix.projectName }} --configuration Release --no-build --output ./artifacts
     
-    - name: Install coverage tools
-      run: dotnet tool install --global dotnet-coverage
+      - name: Display package version
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        run: ls -la ./artifacts/*.nupkg
     
-    - name: Restore dependencies
-      run: dotnet restore src/Foundation.Dto/Adasit.Foundation.Dto.csproj
-    
-    - name: Begin SonarCloud analysis
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        dotnet-sonarscanner begin \
-          /k:"adas-it_foundation-dto" \
-          /o:"adas-it" \
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
-          /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.cs.vscoveragexml.reportsPaths=coverage-domain.xml
-    
-    - name: Build
-      run: dotnet build src/Foundation.Dto/Adasit.Foundation.Dto.csproj --no-restore --configuration Release
-    
-    - name: Test with coverage
-      run: dotnet-coverage collect 'dotnet test tests/Adasit.Foundation.DtoTests/Adasit.Foundation.DtoTests.csproj --no-build --configuration Release --verbosity normal' -f xml -o 'coverage-domain.xml'
-    
-    - name: End SonarCloud analysis
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-    
-    - name: Pack NuGet package
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      run: dotnet pack src/Foundation.Domain/Adasit.Foundation.Dto.csproj --configuration Release --no-build --output ./artifacts
-    
-    - name: Display package version
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      run: |
-        echo "Package version:"
-        ls -la ./artifacts/*.nupkg
-    
-    - name: Publish to GitHub Packages
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-      run: dotnet nuget push ./artifacts/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.ARTIFACTORY_TOKEN }} --skip-duplicate
+      - name: Publish to GitHub Packages
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        run: dotnet nuget push ./artifacts/*.nupkg --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.ARTIFACTORY_TOKEN }} --skip-duplicate
