@@ -20,16 +20,11 @@ public static class ExpressionExtensions
         return Expression.Lambda<Func<T, bool>>(body, parameter);
     }
 
-    private class ReplaceParameterVisitor : ExpressionVisitor
+    private class ReplaceParameterVisitor(ParameterExpression oldParameter, ParameterExpression newParameter)
+        : ExpressionVisitor
     {
-        private readonly ParameterExpression _oldParameter;
-        private readonly ParameterExpression _newParameter;
-
-        public ReplaceParameterVisitor(ParameterExpression oldParameter, ParameterExpression newParameter)
-        {
-            _oldParameter = oldParameter;
-            _newParameter = newParameter;
-        }
+        private readonly ParameterExpression _oldParameter = oldParameter;
+        private readonly ParameterExpression _newParameter = newParameter;
 
         protected override Expression VisitParameter(ParameterExpression node)
         {
